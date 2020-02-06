@@ -1,26 +1,18 @@
 use std::path::PathBuf;
+use std::fs::read_to_string;
+use std::process::Command;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 struct Opt {
-    /// the post's headers
-    headers: PathBuf,
-
-    /// the post's body, with {user} and {password} for replacement
-    body: String,
-
-    /// url to attack
-    url: String,
+    /// the file with curl command
+    curl: PathBuf,
 
     /// users list
     users: Option<PathBuf>,
 
     /// password dictionary
     passwords: Option<PathBuf>,
-
-    /// proxy
-    #[structopt(short, long)]
-    proxy: Option<String>,
 
     /// number of threads to run on
     #[structopt(short, long, default_value = "1")]
@@ -29,13 +21,19 @@ struct Opt {
 
 fn main() {
     let opt = Opt::from_args();
-    let proxy = reqwest::Proxy::all("socks5h://127.0.0.1:9050").expect("tor isn't running");
-    let client = reqwest::blocking::Client::builder()
-        .proxy(proxy)
-        .build()
-        .unwrap();
 
-    let r = client.get("https://myexternalip.com/raw").send().unwrap();
+    let command = dbg!(read_to_string(opt.curl)).unwrap();
 
-    println!("{:?}", r.text());
+	let ip = Command::new("curl")
+		.args(command.split_ascii_whitespace())
+		.output()
+		.unwrap()
+		.stdout;
+
+	// FIXME this is very very bad
+	
+	let ip = String::from_utf8(ip).unwrap();
+
+	println!("{}", ip);
+
 }
