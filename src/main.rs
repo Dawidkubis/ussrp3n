@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use std::fs::read_to_string;
+use std::path::PathBuf;
 use std::process::Command;
 use structopt::StructOpt;
 
@@ -24,17 +24,10 @@ fn main() {
 
     let command = read_to_string(opt.command).unwrap();
 
-	let cmd = Command::new("sh")
-		.arg("-c")
-		.arg(command)
-		.output()
-		.unwrap();
+    let cmd = Command::new("sh").arg("-c").arg(command).output().unwrap();
 
-	// FIXME this is a very very bad
-	
-	let ip = String::from_utf8(cmd.stdout).unwrap();
-	let err = String::from_utf8(cmd.stderr).unwrap();
+    let ip = String::from_utf8(cmd.stdout).unwrap();
+    let err = String::from_utf8(cmd.stderr).unwrap();
 
-	println!("{}\n{}", err, ip);
-
+    println!("{}\n{}", err, ip);
 }
