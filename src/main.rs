@@ -30,7 +30,7 @@ fn main() {
 		.unwrap()
 		.stdout;
 
-	// FIXME this is very very bad
+	// FIXME this is a very very bad
 	
 	let ip = String::from_utf8(ip).unwrap();
 
