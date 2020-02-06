@@ -6,7 +6,7 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 struct Opt {
     /// the file with curl command
-    curl: PathBuf,
+    command: PathBuf,
 
     /// users list
     users: Option<PathBuf>,
@@ -22,18 +22,19 @@ struct Opt {
 fn main() {
     let opt = Opt::from_args();
 
-    let command = dbg!(read_to_string(opt.curl)).unwrap();
+    let command = read_to_string(opt.command).unwrap();
 
-	let ip = Command::new("curl")
-		.args(command.split_ascii_whitespace())
+	let cmd = Command::new("sh")
+		.arg("-c")
+		.arg(command)
 		.output()
-		.unwrap()
-		.stdout;
+		.unwrap();
 
 	// FIXME this is a very very bad
 	
-	let ip = String::from_utf8(ip).unwrap();
+	let ip = String::from_utf8(cmd.stdout).unwrap();
+	let err = String::from_utf8(cmd.stderr).unwrap();
 
-	println!("{}", ip);
+	println!("{}\n{}", err, ip);
 
 }
