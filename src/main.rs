@@ -35,6 +35,10 @@ impl FileInput {
             data: s.lines().map(String::from).collect(),
         })
     }
+
+    fn len(&self) -> usize {
+    	self.data.len()
+    }
 }
 
 impl Iterator for FileInput {
@@ -73,6 +77,7 @@ struct Main {
     passwords: Box<I>,
     users: Box<I>,
     cmd: String,
+    count: usize,
 }
 
 impl Main {
@@ -89,7 +94,20 @@ impl Main {
             passwords,
             users,
             cmd,
+            count: 0,
         }
+    }
+}
+
+impl Iterator for Main {
+    type Item = Command;
+
+    fn next(&mut self) -> Option<Self::Item> {
+    	//TODO
+    	let cmd = self.cmd
+    		.replace("{user}", )
+    		.replace("{password}", password)
+    	Command::new()
     }
 }
 
