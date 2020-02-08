@@ -5,6 +5,15 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use structopt::StructOpt;
 
+macro_rules! usspen {
+	($user:expr, $pass:expr) => {
+		let cmd = self.cmd
+			.replace("{user}", $user)
+			.replace("{password}", $pass)
+		Command::new("sh").arg("-c").arg(self.cmd.replace("{user}", $user).replace("{password}", $pass)).output()
+	}
+}
+
 #[derive(Debug, StructOpt)]
 struct Opt {
     /// the file with curl command
@@ -22,93 +31,79 @@ struct Opt {
 }
 
 #[derive(Debug)]
-struct FileInput {
+enum Input {
+    File {
     count: usize,
     data: Vec<String>,
+    },
+    Io,
 }
-
-impl FileInput {
-    fn new(path: impl AsRef<Path>) -> Result<Self> {
-        let s = read_to_string(&path)?;
-        Ok(Self {
-            count: 0,
-            data: s.lines().map(String::from).collect(),
-        })
-    }
-
-    fn len(&self) -> usize {
-    	self.data.len()
-    }
-}
-
-impl Iterator for FileInput {
-    type Item = String;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let r = self.data.get(self.count).cloned();
-        self.count += 1;
-        r
-    }
-}
-
-#[derive(Debug)]
-struct Input;
 
 impl Input {
-    fn new() -> Self {
-        Self // :D
+    fn new(path: Option<impl AsRef<Path>>) -> Result<Self> {
+    	match path {
+        	Some(p) => {
+        		let s = read_to_string(&p)?;
+        		Ok(Self::File {
+            		count: 0,
+            		data: s.lines().map(String::from).collect(),
+        		})
+				},
+			None => Ok(Self::Io),
+    	}
     }
+
 }
 
 impl Iterator for Input {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut input = String::new();
-        print!("//> ");
-        io::stdout().flush().ok()?;
-        io::stdin().read_line(&mut input).ok()?;
-        Some(input)
-    }
-}
-
-type I = dyn Iterator<Item = String>;
-struct Main {
-    passwords: Box<I>,
-    users: Box<I>,
-    cmd: String,
-    count: usize,
-}
-
-impl Main {
-    fn new(passwords: Option<PathBuf>, users: Option<PathBuf>, cmd: String) -> Self {
-        let passwords: Box<I> = match passwords {
-            Some(s) => Box::new(FileInput::new(s).unwrap()),
-            None => Box::new(Input::new()),
-        };
-        let users: Box<I> = match users {
-            Some(s) => Box::new(FileInput::new(s).unwrap()),
-            None => Box::new(Input::new()),
-        };
-        Self {
-            passwords,
-            users,
-            cmd,
-            count: 0,
+    	match self {
+        	Self::File{count:c, data:d} => {
+        		let r = d.get(*c).cloned();
+        		*c += 1;
+        		r
+        	},
+        	Self::Io => {
+        		let mut input = String::new();
+        		print!("//> ");
+        		io::stdout().flush().ok()?;
+        		io::stdin().read_line(&mut input).ok()?;
+        		Some(input)
+        	}
         }
     }
 }
 
-impl Iterator for Main {
-    type Item = Command;
+struct Main {
+	passwords: Input,
+	users: Input,
+	cmd: String,
+	count: usize,
+}
 
-    fn next(&mut self) -> Option<Self::Item> {
-    	//TODO
-    	let cmd = self.cmd
-    		.replace("{user}", )
-    		.replace("{password}", password)
-    	Command::new()
-    }
+impl Main {
+	fn new(passwords: Option<PathBuf>, users: Option<PathBuf>, cmd: String) -> Self {
+		let passwords = Input::new(passwords).unwrap();
+		let users = Input::new(users).unwrap();
+		Self {
+			passwords,
+			users,
+			cmd,
+			count: 0,
+		}
+	}
+}
+
+impl Iterator for Main {
+	type Item = Command;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		match (self.users, self.passwords) {
+
+		}
+	}
 }
 
 fn main() {
