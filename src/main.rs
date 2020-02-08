@@ -32,78 +32,72 @@ struct Opt {
 
 #[derive(Debug)]
 enum Input {
-    File {
-    count: usize,
-    data: Vec<String>,
-    },
+    File { count: usize, data: Vec<String> },
     Io,
 }
 
 impl Input {
     fn new(path: Option<impl AsRef<Path>>) -> Result<Self> {
-    	match path {
-        	Some(p) => {
-        		let s = read_to_string(&p)?;
-        		Ok(Self::File {
-            		count: 0,
-            		data: s.lines().map(String::from).collect(),
-        		})
-				},
-			None => Ok(Self::Io),
-    	}
+        match path {
+            Some(p) => {
+                let s = read_to_string(&p)?;
+                Ok(Self::File {
+                    count: 0,
+                    data: s.lines().map(String::from).collect(),
+                })
+            }
+            None => Ok(Self::Io),
+        }
     }
-
 }
 
 impl Iterator for Input {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
-    	match self {
-        	Self::File{count:c, data:d} => {
-        		let r = d.get(*c).cloned();
-        		*c += 1;
-        		r
-        	},
-        	Self::Io => {
-        		let mut input = String::new();
-        		print!("//> ");
-        		io::stdout().flush().ok()?;
-        		io::stdin().read_line(&mut input).ok()?;
-        		Some(input)
-        	}
+        match self {
+            Self::File { count: c, data: d } => {
+                let r = d.get(*c).cloned();
+                *c += 1;
+                r
+            }
+            Self::Io => {
+                let mut input = String::new();
+                print!("//> ");
+                io::stdout().flush().ok()?;
+                io::stdin().read_line(&mut input).ok()?;
+                Some(input)
+            }
         }
     }
 }
 
 struct Main {
-	passwords: Input,
-	users: Input,
-	cmd: String,
-	count: usize,
+    passwords: Input,
+    users: Input,
+    cmd: String,
+    count: usize,
 }
 
 impl Main {
-	fn new(passwords: Option<PathBuf>, users: Option<PathBuf>, cmd: String) -> Self {
-		let passwords = Input::new(passwords).unwrap();
-		let users = Input::new(users).unwrap();
-		Self {
-			passwords,
-			users,
-			cmd,
-			count: 0,
-		}
-	}
+    fn new(passwords: Option<PathBuf>, users: Option<PathBuf>, cmd: String) -> Self {
+        let passwords = Input::new(passwords).unwrap();
+        let users = Input::new(users).unwrap();
+        Self {
+            passwords,
+            users,
+            cmd,
+            count: 0,
+        }
+    }
 }
 
 impl Iterator for Main {
-	type Item = Command;
+    type Item = Command;
 
-	fn next(&mut self) -> Option<Self::Item> {
-		match (self.users, self.passwords) {
-
-		}
-	}
+    fn next(&mut self) -> Option<Self::Item> {
+        match (self.users, self.passwords) {}
+    }
 }
 
 fn main() {
