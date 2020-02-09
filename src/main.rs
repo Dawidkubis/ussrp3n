@@ -6,11 +6,8 @@ use std::process::Command;
 use structopt::StructOpt;
 use crate::Input::*;
 
-macro_rules! usspen {
+macro_rules! ussp3n {
 	($user:expr, $pass:expr) => {
-		let cmd = self.cmd
-			.replace("{user}", $user)
-			.replace("{password}", $pass)
 		Command::new("sh").arg("-c").arg(self.cmd.replace("{user}", $user).replace("{password}", $pass)).output()
 	}
 }
