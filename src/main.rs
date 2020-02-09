@@ -1,16 +1,10 @@
+use crate::Input::*;
 use anyhow::Result;
 use std::fs::read_to_string;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Output};
 use structopt::StructOpt;
-use crate::Input::*;
-
-macro_rules! ussp3n {
-	($user:expr, $pass:expr) => {
-		Command::new("sh").arg("-c").arg(self.cmd.replace("{user}", $user).replace("{password}", $pass)).output()
-	}
-}
 
 #[derive(Debug, StructOpt)]
 struct Opt {
@@ -28,7 +22,7 @@ struct Opt {
     threads: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Input {
     File { count: usize, data: Vec<String> },
     Io,
@@ -88,27 +82,29 @@ impl Main {
             count: 0,
         }
     }
+
+    fn ussrp3n(&self, user: &str, pass: &str) -> Result<Output> {
+        Ok(Command::new("sh")
+            .arg("-c")
+            .arg(self.cmd.replace("{user}", user).replace("{password}", pass))
+            .output()?)
+    }
 }
 
 impl Iterator for Main {
-    type Item = String;
+    type Item = Result<Output>;
 
     fn next(&mut self) -> Option<Self::Item> {
-    	//TODO figure out what should be done here...
-        match (&self.users, &self.passwords) {
-			(File{..}, File{..}) => {
-				Some(String::from("1"))
-			},
-			(Io, Io) => {
-				Some(String::from("2"))
-			},
-			(File{..}, Io) => {
-				Some(String::from("3"))
-			},
-			(Io, File{..}) => {
-				Some(String::from("4"))
-			},
-        }
+        //TODO figure out what should be done here...
+        Some(match (&self.users, &self.passwords) {
+            (File { .. }, File { .. }) => self.ussrp3n("nig", "ger"),
+            (Io, Io) => self.ussrp3n(
+                &self.users.clone().next().unwrap(),
+                &self.passwords.next().unwrap(),
+            ),
+            (File { .. }, Io) => self.ussrp3n("nig", "ger"),
+            (Io, File { .. }) => self.ussrp3n("nig", "ger"),
+        })
     } //function end
 }
 
