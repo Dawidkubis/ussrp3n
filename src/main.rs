@@ -4,6 +4,7 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use structopt::StructOpt;
+use crate::Input::*;
 
 macro_rules! usspen {
 	($user:expr, $pass:expr) => {
@@ -93,11 +94,25 @@ impl Main {
 }
 
 impl Iterator for Main {
-    type Item = Command;
+    type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match (self.users, self.passwords) {}
-    }
+    	//TODO figure out what should be done here...
+        match (&self.users, &self.passwords) {
+			(File{..}, File{..}) => {
+				Some(String::from("1"))
+			},
+			(Io, Io) => {
+				Some(String::from("2"))
+			},
+			(File{..}, Io) => {
+				Some(String::from("3"))
+			},
+			(Io, File{..}) => {
+				Some(String::from("4"))
+			},
+        }
+    } //function end
 }
 
 fn main() {
