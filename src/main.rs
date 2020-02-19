@@ -70,6 +70,12 @@ impl Iterator for Main {
 	} //function end
 }
 
+enum Status {
+	In,
+	NotIn,
+	Again,
+}
+
 fn main() {
 	let opt = Opt::from_args();
 	let cmd = read_to_string(opt.command).unwrap();
@@ -85,8 +91,12 @@ fn main() {
 		.map(String::from)
 		.collect();
 
+	let cache:Vec<(Output, Status)> = vec![];
+
 	let main = Main::new(passwords, users, cmd);
+
+	// main loop
 	for i in main {
-		//println!("{:?}", i)
+		println!("{:?}", i);
 	}
 }
