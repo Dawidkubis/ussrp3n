@@ -31,19 +31,7 @@ struct Main {
 }
 
 impl Main {
-	fn new(passwords: PathBuf, users: PathBuf, cmd: String) -> Self {
-		let passwords:Vec<String> =	read_to_string(passwords)
-						.unwrap()
-						.lines()
-						.map(String::from)
-						.collect();
-
-		let users:Vec<String> =	read_to_string(users)
-						.unwrap()
-						.lines()
-						.map(String::from)
-						.collect();
-
+	fn new(passwords: Vec<String>, users: Vec<String>, cmd: String) -> Self {
 		Self {
 			passwords,
 			users,
@@ -68,18 +56,36 @@ impl Iterator for Main {
 	type Item = Output;
 
 	fn next(&mut self) -> Option<Self::Item> {
-			Some(self.ussrp3n(
-				self.users.get(self.count % self.users.len())?.to_string(),
-				self.passwords
-					.get(self.count / self.users.len() as usize)?.to_string()
-					,
-			).unwrap())
+		let user = self.users
+			.get(self.count % self.users.len())?.to_string();
+
+		let pass = self.passwords
+					.get(self.count / self.users.len() as usize)?.to_string();
+		
+		self.count += 1;
+
+		println!("{} + {}", user, pass);
+		Some(self.ussrp3n(user, pass).unwrap()) //TODO error check
 	} //function end
 }
 
 fn main() {
 	let opt = Opt::from_args();
 	let cmd = read_to_string(opt.command).unwrap();
+	let passwords:Vec<String> =	read_to_string(opt.passwords.unwrap())
+					.unwrap()
+					.lines()
+					.map(String::from)
+					.collect();
 
-	let main = Main::new(opt.passwords.unwrap(), opt.users.unwrap(), cmd);
+	let users:Vec<String> =	read_to_string(opt.users.unwrap())
+					.unwrap()
+					.lines()
+					.map(String::from)
+					.collect();
+
+	let main = Main::new(passwords, users, cmd);
+	for i in main {
+		//println!("{:?}", i)
+	}
 }
