@@ -56,12 +56,13 @@ impl Iterator for Main {
 	type Item = Output;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		let user = self.users
-			.get(self.count % self.users.len())?.to_string();
+		let user = self.users.get(self.count % self.users.len())?.to_string();
 
-		let pass = self.passwords
-					.get(self.count / self.users.len() as usize)?.to_string();
-		
+		let pass = self
+			.passwords
+			.get(self.count / self.users.len() as usize)?
+			.to_string();
+
 		self.count += 1;
 
 		println!("{} + {}", user, pass);
@@ -72,17 +73,17 @@ impl Iterator for Main {
 fn main() {
 	let opt = Opt::from_args();
 	let cmd = read_to_string(opt.command).unwrap();
-	let passwords:Vec<String> =	read_to_string(opt.passwords.unwrap())
-					.unwrap()
-					.lines()
-					.map(String::from)
-					.collect();
+	let passwords: Vec<String> = read_to_string(opt.passwords.unwrap())
+		.unwrap()
+		.lines()
+		.map(String::from)
+		.collect();
 
-	let users:Vec<String> =	read_to_string(opt.users.unwrap())
-					.unwrap()
-					.lines()
-					.map(String::from)
-					.collect();
+	let users: Vec<String> = read_to_string(opt.users.unwrap())
+		.unwrap()
+		.lines()
+		.map(String::from)
+		.collect();
 
 	let main = Main::new(passwords, users, cmd);
 	for i in main {
