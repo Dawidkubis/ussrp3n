@@ -76,6 +76,16 @@ enum Status {
 	Again,
 }
 
+struct Cache(Vec<(Output, Status)>);
+
+impl Cache {
+	fn new() -> Self {
+		Self(vec![])
+	}
+	
+
+}
+
 fn main() {
 	let opt = Opt::from_args();
 	let cmd = read_to_string(opt.command).unwrap();
@@ -91,12 +101,16 @@ fn main() {
 		.map(String::from)
 		.collect();
 
-	let cache:Vec<(Output, Status)> = vec![];
-
 	let main = Main::new(passwords, users, cmd);
+
+	let cache = Cache::new();
 
 	// main loop
 	for i in main {
+		if !i.status.success() {
+
+		}
+
 		println!("{:?}", i);
 	}
 }
