@@ -82,8 +82,6 @@ impl Cache {
 	fn new() -> Self {
 		Self(vec![])
 	}
-	
-
 }
 
 fn main() {
@@ -107,9 +105,7 @@ fn main() {
 
 	// main loop
 	for i in main {
-		if !i.status.success() {
-
-		}
+		if !i.status.success() {}
 
 		println!("{:?}", i);
 	}
