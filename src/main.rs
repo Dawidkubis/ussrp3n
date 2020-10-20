@@ -1,41 +1,116 @@
-use std::path::PathBuf;
+use anyhow::Result;
+use std::fs::read_to_string;
+use std::io::{self, Write};
+use std::path::{Path, PathBuf};
+use std::process::{Command, Output};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 struct Opt {
-    /// the post's headers
-    headers: PathBuf,
+	/// the file with curl command
+	command: PathBuf,
 
-    /// the post's body, with {user} and {password} for replacement
-    body: String,
+	/// users list
+	#[structopt(short, long)]
+	users: Option<PathBuf>,
 
-    /// url to attack
-    url: String,
+	/// password dictionary
+	#[structopt(short, long)]
+	passwords: Option<PathBuf>,
 
-    /// users list
-    users: Option<PathBuf>,
+	/// number of threads to run on
+	#[structopt(short, long, default_value = "1")]
+	threads: usize,
+}
 
-    /// password dictionary
-    passwords: Option<PathBuf>,
+struct Main {
+	passwords: Vec<String>,
+	users: Vec<String>,
+	cmd: String,
+	count: usize,
+}
 
-    /// proxy
-    #[structopt(short, long)]
-    proxy: Option<String>,
+impl Main {
+	fn new(passwords: Vec<String>, users: Vec<String>, cmd: String) -> Self {
+		Self {
+			passwords,
+			users,
+			cmd,
+			count: 0,
+		}
+	}
 
-    /// number of threads to run on
-    #[structopt(short, long, default_value = "1")]
-    threads: usize,
+	fn ussrp3n(&self, user: String, pass: String) -> Result<Output> {
+		Ok(Command::new("sh")
+			.arg("-c")
+			.arg(
+				self.cmd
+					.replace("{user}", user.as_ref())
+					.replace("{password}", pass.as_ref()),
+			)
+			.output()?)
+	}
+}
+
+impl Iterator for Main {
+	type Item = Output;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		let user = self.users.get(self.count % self.users.len())?.to_string();
+
+		let pass = self
+			.passwords
+			.get(self.count / self.users.len() as usize)?
+			.to_string();
+
+		self.count += 1;
+
+		println!("{} + {}", user, pass);
+		Some(self.ussrp3n(user, pass).unwrap()) //TODO error check
+	} //function end
+}
+
+enum Status {
+	In,
+	NotIn,
+	Again,
+}
+
+struct Cache(Vec<(Output, Status)>);
+
+impl Cache {
+	fn new() -> Self {
+		Self(vec![])
+	}
+	
+
 }
 
 fn main() {
-    let opt = Opt::from_args();
-    let proxy = reqwest::Proxy::all("socks5h://127.0.0.1:9050").expect("tor isn't running");
-    let client = reqwest::blocking::Client::builder()
-        .proxy(proxy)
-        .build()
-        .unwrap();
+	let opt = Opt::from_args();
+	let cmd = read_to_string(opt.command).unwrap();
+	let passwords: Vec<String> = read_to_string(opt.passwords.unwrap())
+		.unwrap()
+		.lines()
+		.map(String::from)
+		.collect();
 
-    let r = client.get("https://myexternalip.com/raw").send().unwrap();
+	let users: Vec<String> = read_to_string(opt.users.unwrap())
+		.unwrap()
+		.lines()
+		.map(String::from)
+		.collect();
 
-    println!("{:?}", r.text());
+	let main = Main::new(passwords, users, cmd);
+
+	let cache = Cache::new();
+
+	// main loop
+	for i in main {
+		if !i.status.success() {
+
+		}
+
+		println!("{:?}", i);
+	}
 }

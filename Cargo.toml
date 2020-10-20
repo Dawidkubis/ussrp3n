@@ -8,4 +8,4 @@ edition = "2018"
 
 [dependencies]
 structopt = "0.3.9"
-reqwest = {version="0.10.1", features=["socks", "blocking"]}
+anyhow = "1.0.26"
